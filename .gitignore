@@ -1,0 +1,30 @@
+# Environnement virtuel
+venv/
+
+# Fichiers Python compilés
+__pycache__/
+*.py[cod]
+
+# Base de données SQLite
+*.sqlite3
+
+# Fichiers d’environnement
+.env
+*.env
+
+# Django static et media
+/static/
+media/
+
+# VS Code
+.vscode/
+
+# Outils de test / couverture
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Systèmes d'exploitation
+.DS_Store
+Thumbs.db
