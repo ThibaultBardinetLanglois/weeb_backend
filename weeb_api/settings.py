@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "contact",
     "articles",
+    "ml",
     'rest_framework',
       'corsheaders',#to avoid all problemes with frontend display
 ]
