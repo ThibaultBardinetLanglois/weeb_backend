@@ -39,9 +39,16 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "contact",
     "articles",
+    'rest_framework',
+      'corsheaders',#to avoid all problemes with frontend display
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 6,
+}
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -49,6 +56,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+CORS_ALLOWED_ORIGINS = [ #to allow frontend port as an origin must be changed when needed 
+    "http://localhost:3000",
 ]
 
 ROOT_URLCONF = "weeb_api.urls"
