@@ -42,7 +42,7 @@ from utils import clean_text
 # === Step 1: Download and load the dataset ===
 
 # Google Drive public file ID and download target
-file_id = "1VrM1g88xG94SOIUo8JAg0-J2yby6kYjE"
+file_id = "1fRDWz74h7ZVzO5xNLZj8UeLiBj-YUmXK"
 output = "data.csv"
 
 print("\n📥 Downloading dataset from Google Drive...")
@@ -71,35 +71,37 @@ print("🧹 Cleaning text data...")
 df['clean_text'] = df['text'].apply(clean_text)
 print("✅ Text cleaned.\n")
 
-# === Step 3: TF-IDF Vectorization ===
-
-print("🧠 Vectorizing text using TF-IDF...")
-vectorizer = TfidfVectorizer(max_features=5000, ngram_range=(1,2))  # Unigrams + bigrames
-# max_features=5000 : limite la dimension pour éviter le sur-apprentissage.
-# ngram_range=(1,2) : prend en compte des paires de mots (ex : "très bien", "pas content").
-X = vectorizer.fit_transform(df['clean_text'])
-y = df['label']
-print("✅ Text vectorized.\n")
-
-
-# === Step 4: Train/Test Split ===
+# === Step 3: Train/Test Split ===
 
 print("✂️ Splitting data: 80% train / 20% test...")
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(df['clean_text'], df['label'], test_size=0.2, random_state=42)
 print("✅ Data split complete.\n")
+
+# === Step 4: TF-IDF Vectorization ===
+
+print("🧠 Vectorizing text using TF-IDF...")
+vectorizer = TfidfVectorizer(max_features=100000, ngram_range=(1,2))  # Unigrams + bigrames
+# max_features=100000: limits the dimensionality to prevent overfitting.
+# ngram_range=(1,2): takes word pairs into account (e.g., "très bien", "pas content").
+
+# Fit only on the training set
+vectorizer.fit(X_train)
+X_train_vect = vectorizer.transform(X_train)
+X_test_vect = vectorizer.transform(X_test)
+print("✅ Text vectorized.\n")
 
 # === Step 5: Train the Logistic Regression model ===
 
 print("⚙️ Training logistic regression model...")
-model = LogisticRegression(max_iter=200)
-model.fit(X_train, y_train)
+model = LogisticRegression(max_iter=100000)
+model.fit(X_train_vect, y_train)
 print("✅ Model trained.\n")
 
 # === Step 6: Model Evaluation ===
 
 print("📏 Model evaluation:\n")
 
-y_pred = model.predict(X_test)
+y_pred = model.predict(X_test_vect)
 
 print("✅ Accuracy:", round(accuracy_score(y_test, y_pred), 4), "\n")
 

@@ -12,6 +12,7 @@ def clean_text(text):
         - Remove mentions (@username) and hashtags (#)
         - Remove punctuation
         - Remove numeric digits
+        - Remove symbols as ©
         - Remove extra whitespace
 
     Args:
@@ -25,5 +26,6 @@ def clean_text(text):
     text = re.sub(r'\@\w+|\#','', text)
     text = text.translate(str.maketrans('', '', string.punctuation))
     text = re.sub(r'\d+', '', text)
+    text = re.sub(r'[©]', '', text)
     text = re.sub(r'\s+', ' ', text).strip()
     return text
