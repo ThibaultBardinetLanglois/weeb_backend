@@ -4,4 +4,4 @@ from .models import Article
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
     list_display = ('title', 'author', 'publication_date')
-    search_fields = ('title', 'author','content','title')
+    search_fields = ('title', 'author','content')
