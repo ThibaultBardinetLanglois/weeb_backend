@@ -22,5 +22,6 @@ urlpatterns = [
     path("api/", include([
         path('contact/', include('contact.urls')),
         path('articles/', include('articles.urls')),
+        path('ml/predict/', include("ml.urls"))
     ])),
 ]
