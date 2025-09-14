@@ -10,15 +10,9 @@ from .models import Article
 
 
 class ArticleSerializer(serializers.ModelSerializer):
-    """
-    Serializer for the Article model.
-
-    Handles validation and transformation of Article objects for API usage.
-    The 'publication_date' field is optional on input; if omitted,
-    the model default will apply (current date).
-    """
-    publication_date = serializers.DateField(required=False)
-
+    # DRF va chercher automatiquement une méthode qui s’appelle get_author et dont la valeur retournée sera insérée dans la réponse JSON
+    author = serializers.SerializerMethodField()
+    
     class Meta:
         """
         Metadata for the ArticleSerializer.
@@ -27,4 +21,10 @@ class ArticleSerializer(serializers.ModelSerializer):
         - fields: All fields on the model are included in the serialized output.
         """
         model = Article
-        fields = '__all__'
+        fields = ["id", "publication_date", "title", "content", "author"]
+
+    def get_author(self, obj):
+        if obj.author:
+            full_name = f"{obj.author.first_name} {obj.author.last_name}".strip()
+            return full_name or obj.author.email
+        return None

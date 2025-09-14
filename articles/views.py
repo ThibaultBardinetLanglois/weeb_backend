@@ -6,6 +6,7 @@ using Django REST Framework.
 """
 
 from rest_framework import viewsets, filters
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import Article
 from .serializers import ArticleSerializer
 
@@ -25,3 +26,19 @@ class ArticleViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'content', 'author']           # e.g., ?search=python
     ordering_fields = ['publication_date', 'title']          # e.g., ?ordering=-title
+    
+    def get_permissions(self):
+        """
+        - Lecture (list/retrieve) : accessible à tous
+        - Écriture (create/update/destroy) : nécessite authentification
+        """
+        if self.action in ["list", "retrieve"]:
+            return [AllowAny()]
+        return [IsAuthenticated()]
+    
+    def perform_create(self, serializer):
+        """
+        Associe automatiquement l'auteur à l'utilisateur connecté
+        lors de la création d'un article.
+        """
+        serializer.save(author=self.request.user)

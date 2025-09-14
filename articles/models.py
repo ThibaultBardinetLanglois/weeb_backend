@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.utils import timezone
 
 
@@ -17,7 +18,10 @@ class Article(models.Model):
     """
     title = models.CharField(max_length=255)
     content = models.TextField()
-    author = models.CharField(max_length=100, null=True, blank=True)
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, related_name="articles"
+    )
     publication_date = models.DateField(default=get_today_date)
 
     def __str__(self):
