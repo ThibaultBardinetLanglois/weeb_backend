@@ -1,0 +1,19 @@
+# Virtual environment
+venv/
+
+# Compiled Python Files
+__pycache__/
+*.py[cod]
+
+# SQLite database
+*.sqlite3
+
+# Environment files
+.env
+*.env
+
+# The cache linked to VS Code
+.vscode/
+
+# The data file downloaded to train the machine learning model
+data.csv
