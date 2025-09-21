@@ -6,7 +6,7 @@ from .base import *
 # ==============================================================================
 
 # To avoid exposing code and especially configuration
-DEBUG = False
+DEBUG = True
 
 # ==============================================================================
 # DATABASE
