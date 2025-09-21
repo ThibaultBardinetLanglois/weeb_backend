@@ -56,10 +56,8 @@ AUTH_USER_MODEL = "users.CustomUser"
 ACCESS_MIN = env_int("ACCESS_TOKEN_LIFETIME")
 REFRESH_DAYS = env_int("REFRESH_TOKEN_LIFETIME")
 SIMPLE_JWT = {
-    # "ACCESS_TOKEN_LIFETIME": timedelta(minutes=ACCESS_MIN),
-    # "REFRESH_TOKEN_LIFETIME": timedelta(days=REFRESH_DAYS),
-    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=10),
+    "REFRESH_TOKEN_LIFETIME": timedelta(minutes=1),
     
     # chaque rafraîchissement renvoie également un nouveau refresh_token
     "ROTATE_REFRESH_TOKENS": os.getenv("ROTATE_REFRESH_TOKENS"),
@@ -144,7 +142,7 @@ AXES_RESET_ON_SUCCESS = os.getenv("AXES_RESET_ON_SUCCESS")
 
 # Pour pouvoir travailler en local
 AXES_NEVER_LOCKOUT_WHITELIST = os.getenv("AXES_NEVER_LOCKOUT_WHITELIST") 
-#AXES_IP_WHITELIST = os.environ.get('AXES_IP_WHITELIST', '').split(',')
+AXES_IP_WHITELIST = os.environ.get('AXES_IP_WHITELIST', '').split(',')
 
 
 AUTHENTICATION_BACKENDS = [
@@ -194,13 +192,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "fr"
-
-TIME_ZONE = "UTC"
-
-USE_I18N = True
-
 USE_TZ = True
+TIME_ZONE = "Europe/Paris"
+LANGUAGE_CODE = "fr"
+USE_I18N = True
 
 
 # Static files (CSS, JavaScript, Images)

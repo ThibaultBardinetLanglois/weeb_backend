@@ -21,6 +21,9 @@ class ArticleViewSet(viewsets.ModelViewSet):
     """
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
+    
+    # Tri par défaut
+    ordering = ['-publication_date']  
 
     # Enable search and ordering filters
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

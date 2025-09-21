@@ -22,7 +22,7 @@ class Article(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
         null=True, related_name="articles"
     )
-    publication_date = models.DateField(default=get_today_date)
+    publication_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.title

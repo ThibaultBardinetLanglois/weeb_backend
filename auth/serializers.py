@@ -14,6 +14,10 @@ class AccountInactive(APIException):
 # Connexion
 class EmailTokenObtainPairSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True, error_messages={"required": "L'email est obligatoire."})
+    
+    # Signifie que le champ est utilisable uniquement à l’écriture (POST/PUT/PATCH) :
+    # il doit être fourni par le client lors de la création ou mise à jour,
+    # mais il n’apparaîtra pas dans la réponse (lecture/GET).
     password = serializers.CharField(required=True, write_only=True, error_messages={"required": "Le mot de passe est obligatoire."})
 
 

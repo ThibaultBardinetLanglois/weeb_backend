@@ -43,12 +43,5 @@ def login_and_issue_tokens(request, email, password):
 
     return {
         "refresh": refresh,
-        "response_data": {
-            "access": str(access),
-            "user": {
-                "first_name": user.first_name,
-                "last_name":  user.last_name,
-                "email":      user.email,
-            },
-        }
+        "response_data": { "access": str(access) }
     }
