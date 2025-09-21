@@ -13,8 +13,14 @@ def get_today_date():
 
 class Article(models.Model):
     """
-    Represents an article with a title, content, optional author,
-    and an optional publication date that defaults to today.
+    Model representing an article entry.
+
+    Fields:
+        title (CharField): The article's title.
+        content (TextField): The body text of the article.
+        author (ForeignKey): Optional reference to the user who wrote the article.
+        publication_date (DateTimeField): Date and time of publication,
+            defaults to the current time.
     """
     title = models.CharField(max_length=255)
     content = models.TextField()
@@ -25,4 +31,5 @@ class Article(models.Model):
     publication_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
+        """Return the string representation of the article (its title)."""
         return self.title

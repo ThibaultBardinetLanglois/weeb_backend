@@ -19,7 +19,7 @@ from utils.utils import env_int, env_bool
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# charge le .env qui est à côté de manage.py
+# Load the .env file located next to manage.py
 load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
 ]
 
-# Nouveau modèle d'utilisateur géré par défaut par Django
+# Use the custom user model by default
 AUTH_USER_MODEL = "users.CustomUser"
 
 
@@ -56,10 +56,10 @@ AUTH_USER_MODEL = "users.CustomUser"
 ACCESS_MIN = env_int("ACCESS_TOKEN_LIFETIME")
 REFRESH_DAYS = env_int("REFRESH_TOKEN_LIFETIME")
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(seconds=10),
-    "REFRESH_TOKEN_LIFETIME": timedelta(minutes=1),
+    "ACCESS_TOKEN_LIFETIME": ACCESS_MIN,
+    "REFRESH_TOKEN_LIFETIME": REFRESH_DAYS,
     
-    # chaque rafraîchissement renvoie également un nouveau refresh_token
+    # Each refresh issues a new refresh token as well
     "ROTATE_REFRESH_TOKENS": os.getenv("ROTATE_REFRESH_TOKENS"),
     "BLACKLIST_AFTER_ROTATION": os.getenv("BLACKLIST_AFTER_ROTATION")
 }
@@ -111,36 +111,35 @@ TEMPLATES = [
 WSGI_APPLICATION = "weeb_api.wsgi.application"
 
 # -------------------------------------------------------------------
-# Configuration de la librairie django-axes
-# (https://django-axes.readthedocs.io/) utilisée pour limiter
-# les tentatives de connexion par mot de passe (brute-force protection).
+# django-axes configuration
+# (https://django-axes.readthedocs.io/) used to limit password-based
+# login attempts (brute-force protection).
 # -------------------------------------------------------------------
-# Nombre maximum de tentatives de connexion échouées
-# avant de bloquer temporairement l’utilisateur/IP.
+# Maximum number of failed login attempts before temporarily blocking
+# the user/IP.
 AXES_FAILURE_LIMIT = env_int("AXES_FAILURE_LIMIT")
 
-# Durée pendant laquelle les échecs sont comptabilisés, en secondes.
-# Ici : 300 secondes = 5 minutes. Après ce délai, le compteur repart à zéro.
+# Time window during which failures are counted, in seconds.
+# Example: 300 seconds = 5 minutes. After this window, the counter resets.
 AXES_COOLOFF_TIME = env_int("AXES_COOLOFF_TIME") 
 
-# Axes lit l'email comme identifiant de connexion qui prend alors la place du username
+# Axes reads the email field as the login identifier in place of username
 AXES_USERNAME_FORM_FIELD = os.getenv("AXES_USERNAME_FORM_FIELD") 
 
-# Paramètres pris en compte pour identifier une tentative de connexion unique.
-# Ici : combinaison de l’adresse IP et du nom d’utilisateur (email/username).
-# Un utilisateur sera bloqué uniquement si une même combinaison IP + username échoue 3 fois en 5 min.
-# Si quelqu’un essaie de forcer le compte alice@example.com depuis une autre IP, cela ne comptera pas dans les tentatives de blocage de l’IP de Alice.
-# => Cela évite qu’un attaquant sur une autre IP bloque un compte légitime.
+# Parameters used to identify a unique login attempt.
+# Here: combination of IP address and username (email/username).
+# A user is blocked only if the same IP + username fails N times within the window.
+# Attempts from a different IP against the same username do not count toward the block
+# for the original IP — mitigating targeted lockouts by third parties.
 AXES_LOCKOUT_PARAMETERS = os.environ.get('AXES_LOCKOUT_PARAMETERS', '').split(',')
 
-# Indique si le blocage doit se lever automatiquement une fois
-# le délai AXES_COOLOFF_TIME écoulé.
-# True = l’utilisateur peut réessayer après 5 minutes,
-# False = un admin doit débloquer manuellement.
+# Whether the lockout is automatically lifted after AXES_COOLOFF_TIME elapses.
+# True = the user can retry after 5 minutes,
+# False = an admin must manually unlock the account.
 AXES_RESET_COOL_OFF = os.getenv("AXES_RESET_COOL_OFF") 
 AXES_RESET_ON_SUCCESS = os.getenv("AXES_RESET_ON_SUCCESS") 
 
-# Pour pouvoir travailler en local
+# Local development allowances
 AXES_NEVER_LOCKOUT_WHITELIST = os.getenv("AXES_NEVER_LOCKOUT_WHITELIST") 
 AXES_IP_WHITELIST = os.environ.get('AXES_IP_WHITELIST', '').split(',')
 
@@ -155,13 +154,12 @@ AUTHENTICATION_BACKENDS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    # Empêche d’utiliser un mot de passe trop proche des attributs de l’utilisateur
-    # (ex. prénom, nom, email, username)
+    # Prevents passwords too similar to user attributes (first name, last name, email, username)
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     
-    # Impose une longueur minimale de 14 caractères pour renforcer la robustesse
+    # Enforces a minimum length of 14 characters for stronger passwords
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         'OPTIONS': {
@@ -169,20 +167,19 @@ AUTH_PASSWORD_VALIDATORS = [
         }
     },
     
-    # Refuse les mots de passe trop courants listés dans le fichier interne de Django
-    # (ex. "password", "123456", "azerty", etc.)
+    # Rejects common passwords listed in Django's internal list
+    # (e.g., "password", "123456", etc.)
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     
-    # Vérifie que le mot de passe n’est pas présent dans les bases de données
-    # de mots de passe compromis (via l’API HaveIBeenPwned en k-anonymity).
-    # (ex. "football2018", "letmein123", etc.)
+    # Checks the password against databases of compromised passwords
+    # via HaveIBeenPwned (k-anonymity API).
     {
         "NAME": "pwned_passwords_django.validators.PwnedPasswordsValidator"
     },
     
-    # Refuse les mots de passe purement numériques (ex. "123456789")
+    # Rejects purely numeric passwords (e.g., "123456789")
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
@@ -209,35 +206,35 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    # Gestions customisées des erreurs
+    # Custom exception handling
     "EXCEPTION_HANDLER": "weeb_api.core.exceptions.custom_exception_handler",
     
-    # Forcer les réponses au format JSON uniquement
+    # Force JSON-only responses
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",
     ),
     
-    # Utiliser JWT (SimpleJWT) comme méthode d’authentification par défaut
+    # Use JWT (SimpleJWT) as the default authentication method
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     
-    # Throttles appliqués à toutes les vues DRF
+    # DRF throttling applied to all views
     "DEFAULT_THROTTLE_CLASSES": [
-        # Limite spécifique aux utilisateurs non authentifiés
+        # Rate limit for unauthenticated users
         "rest_framework.throttling.AnonRateThrottle",
-        # Limite spécifique aux utilisateurs authentifiés
+        # Rate limit for authenticated users
         "rest_framework.throttling.UserRateThrottle",
-        # Limite globale par adresse IP
+        # Global rate limit per IP
         "weeb_api.core.throttles.SiteWideIPThrottle",
     ],
 
     "DEFAULT_THROTTLE_RATES": {
-        # Utilisateurs non authentifiés : max 60 requêtes par minute
+        # Unauthenticated users: max 60 requests per minute
         "anon": os.getenv("THROTTLE_ANON"),
-        # Utilisateurs authentifiés : max 120 requêtes par minute
+        # Authenticated users: max 120 requests per minute
         "user": os.getenv("THROTTLE_USER"),
-        # Par IP (global, tous types de requêtes confondus) : max 200 requêtes par minute, pour
+        # Global per IP (all requests combined): max 200 requests per minute
         "sitewide_ip": os.getenv("THROTTLE_SITEWIDE"),
     },
 }

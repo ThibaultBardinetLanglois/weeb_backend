@@ -22,7 +22,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
     
-    # Tri par défaut
+    # Default ordering: most recent first
     ordering = ['-publication_date']  
 
     # Enable search and ordering filters
@@ -32,8 +32,9 @@ class ArticleViewSet(viewsets.ModelViewSet):
     
     def get_permissions(self):
         """
-        - Lecture (list/retrieve) : accessible à tous
-        - Écriture (create/update/destroy) : nécessite authentification
+        Define access rules:
+        - Read operations (list/retrieve): open to all users.
+        - Write operations (create/update/destroy): require authentication.
         """
         if self.action in ["list", "retrieve"]:
             return [AllowAny()]
@@ -41,7 +42,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         """
-        Associe automatiquement l'auteur à l'utilisateur connecté
-        lors de la création d'un article.
+        Automatically associate the logged-in user as the author
+        when creating a new article.
         """
         serializer.save(author=self.request.user)

@@ -18,14 +18,29 @@ REFRESH_COOKIE_NAME = "refresh_token"
 REFRESH_COOKIE_PATH     = "/api/auth/token/refresh/"
 
 class LoginView(generics.GenericAPIView):
+    """
+    Authenticate a user with email and password, then issue tokens.
+
+    On success:
+      - Returns the access token in the response body.
+      - Sets the refresh token in an HttpOnly cookie restricted to the refresh endpoint.
+    """
     permission_classes = [AllowAny]
     serializer_class = EmailTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
         s = self.get_serializer(data=request.data)
         s.is_valid(raise_exception=True)
+        
+        # Some middleware can wrap the underlying Django request object;
+        # make sure we pass the raw request to authentication helpers.
         django_request = getattr(request, "_request", request)
-        data = login_and_issue_tokens(django_request, s.validated_data["email"], s.validated_data["password"])
+        
+        data = login_and_issue_tokens(
+            django_request, 
+            s.validated_data["email"], 
+            s.validated_data["password"]
+        )
         
         resp = Response(data["response_data"], status=status.HTTP_200_OK)
         resp.set_cookie(
@@ -35,12 +50,18 @@ class LoginView(generics.GenericAPIView):
             httponly=True,
             secure=os.getenv("COOKIE_SECURE"),
             samesite=os.getenv("COOKIE_SAMESITE"),
-            path=REFRESH_COOKIE_PATH  # accessible uniquement sur ce endpoint, le cookie ne sera envoyé que si l’URL de la requête commence par ce chemin
+            # Cookie will only be sent when the request path starts with this prefix
+            path=REFRESH_COOKIE_PATH  
         )
         return resp
         
 
 class RegisterView(generics.CreateAPIView):
+    """
+    Register a new user account.
+
+    Returns a message indicating whether the account is pending admin approval.
+    """
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
 
@@ -65,9 +86,11 @@ class RegisterView(generics.CreateAPIView):
         
 class CookieTokenRefreshView(APIView):
     """
-    Lit le cookie 'refresh_token' et renvoie un nouvel access.
-    Si la rotation est activée (ROTATE_REFRESH_TOKENS=True),
-    repose un nouveau refresh dans le cookie.
+    Read the 'refresh_token' from an HttpOnly cookie and return a new access token.
+
+    If ROTATE_REFRESH_TOKENS=True, issues a new refresh token and sets it back
+    into the cookie (optionally blacklisting the previous one when
+    BLACKLIST_AFTER_ROTATION=True).
     """
     permission_classes = [AllowAny]
 
@@ -84,7 +107,7 @@ class CookieTokenRefreshView(APIView):
             user_id = refresh[api_settings.USER_ID_CLAIM]
             user = User.objects.get(pk=user_id)
 
-            # créer un nouvel access avec claims personnalisés
+            # Build a new access token with custom claims
             access = refresh.access_token
             access["email"] = user.email
             access["first_name"] = user.first_name
@@ -93,7 +116,8 @@ class CookieTokenRefreshView(APIView):
             data = {"access": str(access)}
             resp = Response(data, status=status.HTTP_200_OK)
 
-            # rotation activée => nouveau refresh + blacklist de l’ancien
+            # If rotation is enabled, blacklist the old refresh (optional)
+            # and set a brand new refresh token in the cookie.
             if api_settings.ROTATE_REFRESH_TOKENS:
                 refresh.blacklist() if api_settings.BLACKLIST_AFTER_ROTATION else None
                 new_refresh = RefreshToken.for_user(user)
@@ -102,14 +126,16 @@ class CookieTokenRefreshView(APIView):
                     value=str(new_refresh),
                     max_age=int(os.getenv("COOKIE_REFRESH_MAX_AGE", "604800")),
                     httponly=True,
-                    secure = os.getenv("COOKIE_SECURE", "False").lower() in ("1", "true", "yes"), # Si COOKIE_SECURE vaut "True", "true", ou "1" => secure=True
+                    # Convert env string to bool: "True"/"true"/"1" => True
+                    secure = os.getenv("COOKIE_SECURE", "False").lower() in ("1", "true", "yes"), 
                     samesite=os.getenv("COOKIE_SAMESITE", "Lax"),
                     path=REFRESH_COOKIE_PATH,
                 )
 
             return resp
         except (InvalidToken, TokenError) as e: 
-            # On renvoi un code 401 au lieu de 500, et on supprime le cookie expiré
+            # Return 401 instead of 500 for expired/invalid refresh tokens,
+            # and ensure the client cookie is cleared to avoid retry loops.
             resp = Response(
                 {"detail": "Refresh token invalide ou expiré.", "code": "token_not_valid"},
                 status=status.HTTP_401_UNAUTHORIZED,
@@ -122,8 +148,11 @@ class CookieTokenRefreshView(APIView):
     
 class LogoutView(APIView):
     """
-    Supprime le cookie de refresh côté client.
-    Il faut Penser à blacklister le refresh token du cookie.
+    Invalidate the session by removing the refresh cookie and blacklisting the token.
+
+    The endpoint:
+      - Blacklists the refresh token if present.
+      - Deletes the refresh cookie on the client.
     """
     permission_classes = [AllowAny]
 
@@ -132,12 +161,12 @@ class LogoutView(APIView):
 
         if refresh:
             try:
-                # Instancier un objet RefreshToken (de la lib rest_framework_simplejwt) à partir de la chaîne du jeton refresh récupérée dans le cookie
-                # Cette instanciation permet d’accéder à ses méthodes, dont blacklist()
+                # Instantiate a SimpleJWT RefreshToken from the cookie value
+                # to access blacklist() and mark it as invalid for future use.
                 token = RefreshToken(refresh)
-                token.blacklist()  # ajoute dans BlacklistedToken
+                token.blacklist()  # adds an entry in BlacklistedToken
             except TokenError:
-                # Jeton déjà expiré/invalidé, on passe à l'étape suivante car on n’as plus besoin de le blacklister
+                # Token already invalid/expired—no need to blacklist further.
                 pass
 
         resp = Response({"detail": "Déconnecté."}, status=status.HTTP_200_OK)

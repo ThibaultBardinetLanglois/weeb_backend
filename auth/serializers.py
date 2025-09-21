@@ -7,22 +7,37 @@ from rest_framework_simplejwt.tokens import RefreshToken
 User = get_user_model()
 
 class AccountInactive(APIException):
+    """
+    Custom exception raised when a user account exists but has not yet
+    been activated by an administrator.
+    """
     status_code = 403
     default_detail = "Votre compte est en attente de validation par l'administrateur."
     default_code = "account_inactive"
 
-# Connexion
+# ------------------------------
+# Login
+# ------------------------------
 class EmailTokenObtainPairSerializer(serializers.Serializer):
+    """
+    Serializer for authenticating a user with email and password.
+
+    Returns a token pair (access/refresh) if authentication is successful.
+    """
     email = serializers.EmailField(required=True, error_messages={"required": "L'email est obligatoire."})
     
-    # Signifie que le champ est utilisable uniquement à l’écriture (POST/PUT/PATCH) :
-    # il doit être fourni par le client lors de la création ou mise à jour,
-    # mais il n’apparaîtra pas dans la réponse (lecture/GET).
+    # `write_only=True` → field must be provided on input but is never returned
     password = serializers.CharField(required=True, write_only=True, error_messages={"required": "Le mot de passe est obligatoire."})
 
 
-# Enregistrement
+# ------------------------------
+# Registration
+# ------------------------------
 class RegisterSerializer(serializers.Serializer):
+    """
+    Serializer for registering a new user account.
+    Validates email uniqueness, non-empty names, and password strength.
+    """
     email = serializers.EmailField(
         required=True,
         error_messages={
@@ -47,12 +62,20 @@ class RegisterSerializer(serializers.Serializer):
     )
 
     def validate_email(self, value):
+        """
+        Ensure the email is unique (case-insensitive).
+        """
         email = value.lower()
         if User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError("Cet email est déjà utilisé.")
         return email
 
     def validate(self, attrs):
+        """
+        Perform global validation:
+        - Ensure first/last names are not empty after trimming.
+        - Validate password strength against Django's configured validators.
+        """
         fn = (attrs.get("firstname") or "").strip()
         ln = (attrs.get("lastname") or "").strip()
         if not fn:
@@ -60,12 +83,15 @@ class RegisterSerializer(serializers.Serializer):
         if not ln:
             raise serializers.ValidationError({"lastname": "Le nom ne peut pas être vide."})
 
-        # Valider le mot de passe via les validators Django configurés (base.py)
+        # Validate password strength using Django's password validators
         temp_user = User(email=attrs["email"].lower(), first_name=fn, last_name=ln)
         validate_password(attrs["password"], user=temp_user)
         return attrs
     
     def create(self, validated_data):
+        """
+        Create a new inactive user account (awaiting admin approval).
+        """
         email = validated_data["email"].lower()
         user = User.objects.create_user(
             email=email,

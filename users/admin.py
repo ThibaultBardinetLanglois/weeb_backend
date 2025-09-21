@@ -5,11 +5,17 @@ from .models import CustomUser
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
+    """
+    Custom admin configuration for the CustomUser model.
+
+    Extends Django's built-in UserAdmin to use email as the primary
+    identifier and adjust field organization for the admin interface.
+    """
     ordering = ["email"]
     list_display = ["email", "first_name", "last_name", "is_staff", "is_active"]
     search_fields = ["email", "first_name", "last_name"]
 
-    # Définit l’organisation du formulaire lors de l'édition dans l'admin
+    # Define the layout of fields when editing an existing user in the admin
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         (_("Informations personnelles"), {"fields": ("first_name", "last_name")}),
@@ -17,7 +23,7 @@ class CustomUserAdmin(UserAdmin):
         (_("Dates importantes"), {"fields": ("last_login", "date_joined")}),
     )
 
-    # Définit les champs affichés dans le formulaire de création d’un nouvel utilisateur
+    # Define the fields shown when creating a new user in the admin
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
