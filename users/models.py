@@ -3,7 +3,15 @@ from django.db import models
 from django.utils import timezone
 
 class CustomUserManager(BaseUserManager):
+    """
+    Custom manager for the CustomUser model.
+
+    Provides helper methods for creating regular users and superusers.
+    """
     def create_user(self, email, password=None, **extra_fields):
+        """
+        Create and return a regular user with the given email and password.
+        """
         if not email:
             raise ValueError("L'email est obligatoire")
         email = self.normalize_email(email)
@@ -13,6 +21,9 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
+        """
+        Create and return a superuser with all permissions enabled.
+        """
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
@@ -21,7 +32,9 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    """User basé sur AbstractUser mais sans username, identifié par email."""
+    """
+    Custom user model based on AbstractBaseUser, identified by email instead of username.
+    """
 
     username = None  # on supprime le champ username
     email = models.EmailField(unique=True)  # email unique obligatoire
@@ -39,4 +52,5 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
     def __str__(self):
+        """Return the email as the string representation of the user."""
         return self.email
