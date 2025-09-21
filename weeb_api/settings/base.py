@@ -45,6 +45,9 @@ INSTALLED_APPS = [
     'rest_framework',
 ]
 
+# Secret key for development. DO NOT USE in production.
+SECRET_KEY = os.environ.get('SECRET_KEY')
+
 # Use the custom user model by default
 AUTH_USER_MODEL = "users.CustomUser"
 
@@ -56,8 +59,8 @@ AUTH_USER_MODEL = "users.CustomUser"
 ACCESS_MIN = env_int("ACCESS_TOKEN_LIFETIME")
 REFRESH_DAYS = env_int("REFRESH_TOKEN_LIFETIME")
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": ACCESS_MIN,
-    "REFRESH_TOKEN_LIFETIME": REFRESH_DAYS,
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=ACCESS_MIN),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=REFRESH_DAYS),
     
     # Each refresh issues a new refresh token as well
     "ROTATE_REFRESH_TOKENS": os.getenv("ROTATE_REFRESH_TOKENS"),
@@ -76,6 +79,7 @@ REST_FRAMEWORK = {
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     "django.middleware.security.SecurityMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -85,9 +89,10 @@ MIDDLEWARE = [
     "axes.middleware.AxesMiddleware"
 ]
 
-CORS_ALLOWED_ORIGINS = [ 
-    "http://localhost:3000",
-]
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+
+# CORS allowed origins for frontend apps (development)
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
 
 CORS_ALLOW_CREDENTIALS = True
 
