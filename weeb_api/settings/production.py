@@ -5,8 +5,8 @@ from .base import *
 # SECURITY
 # ==============================================================================
 
-# To avoid exposing code and especially configuration
-DEBUG = False
+# To avoid exposing the code and especially the configuration we must define DEBUG=False but during this testing phase we prefer to have the choice
+# So we choose to let the variable in settings/base.py
 
 # ==============================================================================
 # DATABASE
