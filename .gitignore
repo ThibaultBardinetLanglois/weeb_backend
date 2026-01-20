@@ -17,3 +17,7 @@ __pycache__/
 
 # The data file downloaded to train the machine learning model
 data.csv
+
+# Pytest cache
+**/.pytest_cache/
+
