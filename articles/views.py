@@ -27,8 +27,8 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
     # Enable search and ordering filters
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['title', 'content', 'author']           # e.g., ?search=python
-    ordering_fields = ['publication_date', 'title']          # e.g., ?ordering=-title
+    search_fields = ['title', 'content']                    # e.g., ?search=python
+    ordering_fields = ['publication_date', 'title']         # e.g., ?ordering=-title
     
     def get_permissions(self):
         """
