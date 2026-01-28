@@ -42,7 +42,7 @@ from utils import clean_text
 # === Step 1: Download and load the dataset ===
 
 # Google Drive public file ID and download target
-file_id = "1fRDWz74h7ZVzO5xNLZj8UeLiBj-YUmXK"
+file_id = "17jeCw3TisLxDOtS5d3PXSF5G4mc4zWwq"
 output = "data.csv"
 
 print("\n📥 Downloading dataset from Google Drive...")
@@ -51,6 +51,9 @@ print("✅ Dataset downloaded.\n")
 
 # Read the CSV into a DataFrame
 df = pd.read_csv(output)
+
+print("Shuffle the dataset")
+df = df.sample(frac=1, random_state=42).reset_index(drop=True)  
 
 print("📝 Preview of the dataset:")
 print(df.head(), "\n")
@@ -63,12 +66,14 @@ print("📈 Class distribution (positive/negative tweets):")
 print(df['label'].value_counts(), "\n")
 
 print("🔍 Missing values in the dataset:")
+df = df.dropna(subset=['comment', 'label'])
 print(df.isna().sum(), "\n")
 
 # === Step 2: Text cleaning ===
 
 print("🧹 Cleaning text data...")
-df['clean_text'] = df['text'].apply(clean_text)
+df['comment'] = df['comment'].astype(str)
+df['clean_text'] = df['comment'].apply(clean_text)
 print("✅ Text cleaned.\n")
 
 # === Step 3: Train/Test Split ===
