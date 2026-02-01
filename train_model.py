@@ -52,9 +52,6 @@ print("✅ Dataset downloaded.\n")
 # Read the CSV into a DataFrame
 df = pd.read_csv(output)
 
-print("Shuffle the dataset")
-df = df.sample(frac=1, random_state=42).reset_index(drop=True)  
-
 print("📝 Preview of the dataset:")
 print(df.head(), "\n")
 
@@ -85,8 +82,8 @@ print("✅ Data split complete.\n")
 # === Step 4: TF-IDF Vectorization ===
 
 print("🧠 Vectorizing text using TF-IDF...")
-vectorizer = TfidfVectorizer(max_features=30000, ngram_range=(1,2), max_df=1.0, min_df=5)  # Unigrams + bigrames
-# max_features=100000: limits the dimensionality to prevent overfitting.
+vectorizer = TfidfVectorizer(max_features=20000, ngram_range=(1,2), max_df=1.0, min_df=5)  # Unigrams + bigrames
+# max_features=20000: limits the dimensionality to prevent overfitting.
 # ngram_range=(1,2): takes word pairs into account (e.g., "très bien", "pas content").
 
 # Fit only on the training set
@@ -98,7 +95,7 @@ print("✅ Text vectorized.\n")
 # === Step 5: Train the Logistic Regression model ===
 
 print("⚙️ Training logistic regression model...")
-model = LogisticRegression(max_iter=10000, C=1.0, solver='saga')
+model = LogisticRegression(max_iter=50000, solver='saga', n_jobs=-1)
 model.fit(X_train_vect, y_train)
 print("✅ Model trained.\n")
 
